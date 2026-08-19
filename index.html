@@ -50,6 +50,7 @@
     font-family:'Inter',system-ui,sans-serif;
     min-height:100vh;
     -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
   }
 
   /* ---------- Barra superior ---------- */
@@ -263,6 +264,42 @@
   .bi-enun{font-size:.86rem;color:var(--giz);line-height:1.5;max-height:4.6em;overflow:hidden;margin-bottom:10px;white-space:pre-wrap;}
   .bi-acoes{display:flex;gap:8px;align-items:center;}
   .bi-acoes .btn-ouro{flex:1;justify-content:center;}
+
+  /* ---------- Ajustes para celular (telas estreitas) ---------- */
+  @media screen and (max-width:700px){
+    .topbar{padding:11px 13px;gap:9px;}
+    .marca .nome{font-size:1.16rem;}
+    .app-titulo{display:none;}
+    .btn{font-size:.9rem;padding:10px 13px;}
+
+    .builder{padding:16px 13px 50px;}
+    .bloco{padding:15px;}
+    .bloco > h2{font-size:1.08rem;}
+    .campo label{font-size:.82rem;}
+    .campo input,.campo select,.campo textarea{font-size:16px;padding:11px 12px;}
+    .selo-honesto,.dica{font-size:.86rem;}
+    .q-tipo{font-size:.8rem;}
+
+    .stage{padding:10px;}
+    .stage-tabs button{font-size:.95rem;padding:9px 20px;}
+
+    .folha{width:100%;padding:18px 15px;font-size:16px;line-height:1.55;box-shadow:0 8px 24px rgba(0,0,0,.35);}
+    .cab{gap:10px;padding-bottom:11px;}
+    .cab .logo,.cab .logo-placeholder,.cab .nota-box{width:52px;height:52px;}
+    .cab .inst{font-size:1.08rem;}
+    .cab .doc-tipo{font-size:.72rem;letter-spacing:.18em;}
+    .meta{grid-template-columns:1fr;gap:0;font-size:1rem;}
+    .aluno{grid-template-columns:1fr;gap:12px;}
+    .aluno .rot{font-size:.78rem;}
+    .instrucoes{font-size:.96rem;}
+    .instrucoes h4{font-size:.86rem;}
+    .obs-prof{font-size:.94rem;}
+    .questao .q-pts{font-size:.86rem;}
+    .alts{padding-left:18px;}
+    .linhas-resp{margin-left:18px;}
+    .rodape-folha{font-size:.82rem;}
+    .questao .q-enun,.bi-enun,.instrucoes p,.obs-prof p,.alts li{overflow-wrap:anywhere;}
+  }
 
   /* Impressão */
   @media print{
