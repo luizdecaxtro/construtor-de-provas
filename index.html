@@ -156,6 +156,12 @@
   .ia-config summary:hover{color:var(--giz);}
   .ia-config[open] summary{margin-bottom:10px;color:var(--ouro);}
   .q-ia{font-size:.6rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;background:rgba(212,175,55,.2);color:var(--ouro);border:1px solid var(--ouro-escuro);border-radius:20px;padding:2px 7px;margin-left:2px;}
+  .q-descr{margin-top:10px;display:flex;flex-direction:column;gap:4px;}
+  .q-descr label{font-size:.66rem;text-transform:uppercase;letter-spacing:.04em;color:var(--giz-suave);}
+  .q-descr select{background:#16302b;border:1px solid var(--painel-borda);color:var(--giz);padding:7px 9px;border-radius:8px;font-size:.8rem;}
+  .q-descr select:focus{outline:none;border-color:var(--ouro);}
+  .bi-descr{font-size:.72rem;color:var(--ouro);margin-bottom:6px;font-weight:600;}
+  .gab-item .gab-desc{font-size:.66rem;color:var(--tinta-suave);margin-top:4px;font-family:'Inter',sans-serif;}
 
   /* ---------- Palco / folha ---------- */
   .stage{padding:26px;display:flex;flex-direction:column;align-items:center;gap:14px;}
@@ -470,6 +476,21 @@
         <input type="text" id="ia-assunto" placeholder="Ex.: equação do primeiro grau">
       </div>
       <div class="grade-2">
+        <div class="campo">
+          <label for="ia-etapa">Etapa (SAEB)</label>
+          <select id="ia-etapa">
+            <option value="ef5">5º ano (EF)</option>
+            <option value="ef9">9º ano (EF)</option>
+            <option value="em3">3º ano (EM)</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="ia-descritor">Descritor (SAEB) — opcional</label>
+          <select id="ia-descritor"></select>
+        </div>
+      </div>
+      <p class="dica" id="ia-descr-dica">Se escolher um descritor, a IA cria a questão avaliando essa habilidade. Descritores disponíveis para Matemática e Língua Portuguesa.</p>
+      <div class="grade-2">
         <div class="campo" id="ia-alts-wrap">
           <label for="ia-nalts">Nº de alternativas</label>
           <select id="ia-nalts">
@@ -576,6 +597,281 @@
   var esc = function(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); };
   var letra = function(i){ return "abcdefghij".charAt(i); };
 
+  /* ---------------- Descritores SAEB / Prova Brasil (matrizes clássicas, base INEP) ---------------- */
+  var DESCR = {
+    mat: {
+      ef5: [
+        {t:'Espaço e Forma', d:[
+          ['D1','Identificar a localização/movimentação de objeto em mapas, croquis e outras representações gráficas.'],
+          ['D2','Identificar propriedades comuns e diferenças entre poliedros e corpos redondos, relacionando figuras tridimensionais com suas planificações.'],
+          ['D3','Identificar propriedades comuns e diferenças entre figuras bidimensionais pelo número de lados, pelos tipos de ângulos.'],
+          ['D4','Identificar quadriláteros observando as relações entre seus lados (paralelos, congruentes, perpendiculares).'],
+          ['D5','Reconhecer a conservação ou modificação de medidas dos lados, do perímetro, da área em ampliação e/ou redução de figuras poligonais usando malhas quadriculadas.']
+        ]},
+        {t:'Grandezas e Medidas', d:[
+          ['D6','Estimar a medida de grandezas utilizando unidades de medida convencionais ou não.'],
+          ['D7','Resolver problemas significativos utilizando unidades de medida padronizadas como km/m/cm/mm, kg/g/mg, l/ml.'],
+          ['D8','Estabelecer relações entre unidades de medida de tempo.'],
+          ['D9','Estabelecer relações entre o horário de início e término e/ou o intervalo da duração de um evento ou acontecimento.'],
+          ['D10','Num problema, estabelecer trocas entre cédulas e moedas do sistema monetário brasileiro, em função de seus valores.'],
+          ['D11','Resolver problema envolvendo o cálculo do perímetro de figuras planas, desenhadas em malhas quadriculadas.'],
+          ['D12','Resolver problema envolvendo o cálculo ou estimativa de áreas de figuras planas, desenhadas em malhas quadriculadas.']
+        ]},
+        {t:'Números e Operações/Álgebra e Funções', d:[
+          ['D13','Reconhecer e utilizar características do sistema de numeração decimal, tais como agrupamentos e trocas na base 10 e princípio do valor posicional.'],
+          ['D14','Identificar a localização de números naturais na reta numérica.'],
+          ['D15','Reconhecer a decomposição de números naturais nas suas diversas ordens.'],
+          ['D16','Reconhecer a composição e a decomposição de números naturais em sua forma polinomial.'],
+          ['D17','Calcular o resultado de uma adição ou subtração de números naturais.'],
+          ['D18','Calcular o resultado de uma multiplicação ou divisão de números naturais.'],
+          ['D19','Resolver problema com números naturais, envolvendo diferentes significados da adição ou subtração: juntar, alteração de um estado inicial (positiva ou negativa), comparação e mais de uma transformação (positiva ou negativa).'],
+          ['D20','Resolver problema com números naturais, envolvendo diferentes significados da multiplicação ou divisão: multiplicação comparativa, ideia de proporcionalidade, configuração retangular e combinatória.'],
+          ['D21','Identificar diferentes representações de um mesmo número racional.'],
+          ['D22','Identificar a localização de números racionais representados na forma decimal na reta numérica.'],
+          ['D23','Resolver problema utilizando a escrita decimal de cédulas e moedas do sistema monetário brasileiro.'],
+          ['D24','Identificar fração como representação que pode estar associada a diferentes significados.'],
+          ['D25','Resolver problema com números racionais expressos na forma decimal envolvendo diferentes significados da adição ou subtração.'],
+          ['D26','Resolver problema envolvendo noções de porcentagem (25%, 50%, 100%).']
+        ]},
+        {t:'Tratamento da Informação', d:[
+          ['D27','Ler informações e dados apresentados em tabelas.'],
+          ['D28','Ler informações e dados apresentados em gráficos (particularmente em gráficos de colunas).']
+        ]}
+      ],
+      ef9: [
+        {t:'Espaço e Forma', d:[
+          ['D1','Identificar a localização/movimentação de objeto, em mapas, croquis e outras representações gráficas.'],
+          ['D2','Identificar propriedades comuns e diferenças entre figuras bidimensionais e tridimensionais, relacionando-as com suas planificações.'],
+          ['D3','Identificar propriedades de triângulos pela comparação de medidas de lados e ângulos.'],
+          ['D4','Identificar relação entre quadriláteros, por meio de suas propriedades.'],
+          ['D5','Reconhecer a conservação ou modificação de medidas dos lados, do perímetro, da área em ampliação e/ou redução de figuras poligonais usando malhas quadriculadas.'],
+          ['D6','Reconhecer ângulos como mudança de direção ou giros, identificando ângulos retos e não retos.'],
+          ['D7','Reconhecer que as imagens de uma figura construída por uma transformação homotética são semelhantes, identificando propriedades e/ou medidas que se modificam ou não se alteram.'],
+          ['D8','Resolver problema utilizando a propriedade dos polígonos (soma de seus ângulos internos, número de diagonais, cálculo da medida de cada ângulo interno nos polígonos regulares).'],
+          ['D9','Interpretar informações apresentadas por meio de coordenadas cartesianas.'],
+          ['D10','Utilizar relações métricas do triângulo retângulo para resolver problemas significativos.'],
+          ['D11','Reconhecer círculo/circunferência, seus elementos e algumas de suas relações.']
+        ]},
+        {t:'Grandezas e Medidas', d:[
+          ['D12','Resolver problema envolvendo o cálculo de perímetro de figuras planas.'],
+          ['D13','Resolver problema envolvendo o cálculo de área de figuras planas.'],
+          ['D14','Resolver problema envolvendo noções de volume.'],
+          ['D15','Resolver problema envolvendo relações entre diferentes unidades de medida.']
+        ]},
+        {t:'Números e Operações/Álgebra e Funções', d:[
+          ['D16','Identificar a localização de números inteiros na reta numérica.'],
+          ['D17','Identificar a localização de números racionais na reta numérica.'],
+          ['D18','Efetuar cálculos com números inteiros envolvendo as operações (adição, subtração, multiplicação, divisão e potenciação).'],
+          ['D19','Resolver problema com números naturais envolvendo diferentes significados das operações (adição, subtração, multiplicação, divisão e potenciação).'],
+          ['D20','Resolver problema com números inteiros envolvendo as operações (adição, subtração, multiplicação, divisão e potenciação).'],
+          ['D21','Reconhecer as diferentes representações de um número racional.'],
+          ['D22','Identificar fração como representação que pode estar associada a diferentes significados.'],
+          ['D23','Identificar frações equivalentes.'],
+          ['D24','Reconhecer as representações decimais dos números racionais como uma extensão do sistema de numeração decimal, identificando a existência de "ordens" como décimos, centésimos e milésimos.'],
+          ['D25','Efetuar cálculos que envolvam operações com números racionais (adição, subtração, multiplicação, divisão e potenciação).'],
+          ['D26','Resolver problema com números racionais que envolvam as operações (adição, subtração, multiplicação, divisão e potenciação).'],
+          ['D27','Efetuar cálculos simples com valores aproximados de radicais.'],
+          ['D28','Resolver problema que envolva porcentagem.'],
+          ['D29','Resolver problema que envolva variações proporcionais, diretas ou inversas entre grandezas.'],
+          ['D30','Calcular o valor numérico de uma expressão algébrica.'],
+          ['D31','Resolver problema que envolva equação de segundo grau.'],
+          ['D32','Identificar a expressão algébrica que expressa uma regularidade observada em sequências de números ou figuras (padrões).'],
+          ['D33','Identificar uma equação ou uma inequação de primeiro grau que expressa um problema.'],
+          ['D34','Identificar um sistema de equações do primeiro grau que expressa um problema.'],
+          ['D35','Identificar a relação entre as representações algébrica e geométrica de um sistema de equações de primeiro grau.']
+        ]},
+        {t:'Tratamento da Informação', d:[
+          ['D36','Resolver problemas envolvendo informações apresentadas em tabelas e/ou gráficos.'],
+          ['D37','Associar informações apresentadas em listas e/ou tabelas simples aos gráficos que as representam e vice-versa.']
+        ]}
+      ],
+      em3: [
+        {t:'Espaço e Forma', d:[
+          ['D1','Identificar figuras semelhantes mediante o reconhecimento de relações de proporcionalidade.'],
+          ['D2','Reconhecer aplicações das relações métricas do triângulo retângulo em um problema que envolva figuras planas ou espaciais.'],
+          ['D3','Relacionar diferentes poliedros ou corpos redondos com suas planificações ou vistas.'],
+          ['D4','Identificar a relação entre o número de vértices, faces e/ou arestas de poliedros expressa em um problema.'],
+          ['D5','Resolver problema que envolva razões trigonométricas no triângulo retângulo (seno, cosseno, tangente).'],
+          ['D6','Identificar a localização de pontos no plano cartesiano.'],
+          ['D7','Interpretar geometricamente os coeficientes da equação de uma reta.'],
+          ['D8','Identificar a equação de uma reta apresentada a partir de dois pontos dados ou de um ponto e sua inclinação.'],
+          ['D9','Relacionar a determinação do ponto de interseção de duas ou mais retas com a resolução de um sistema de equações com duas incógnitas.'],
+          ['D10','Reconhecer, entre as equações de 2º grau com duas incógnitas, as que representam circunferências.']
+        ]},
+        {t:'Grandezas e Medidas', d:[
+          ['D11','Resolver problema envolvendo o cálculo de perímetro de figuras planas.'],
+          ['D12','Resolver problema envolvendo o cálculo de área de figuras planas.'],
+          ['D13','Resolver problema envolvendo a área total e/ou volume de um sólido (prisma, pirâmide, cilindro, cone, esfera).']
+        ]},
+        {t:'Números e Operações/Álgebra e Funções', d:[
+          ['D14','Identificar a localização de números reais na reta numérica.'],
+          ['D15','Resolver problema que envolva variações proporcionais, diretas ou inversas entre grandezas.'],
+          ['D16','Resolver problema que envolva porcentagem.'],
+          ['D17','Resolver problema que envolva equação de segundo grau.'],
+          ['D18','Reconhecer expressão algébrica que representa uma função a partir de uma tabela.'],
+          ['D19','Resolver problema envolvendo uma função de primeiro grau.'],
+          ['D20','Analisar crescimento/decrescimento, zeros de funções reais apresentadas em gráficos.'],
+          ['D21','Identificar o gráfico que representa uma situação descrita em um texto.'],
+          ['D22','Resolver problema envolvendo P.A./P.G. dada a fórmula do termo geral.'],
+          ['D23','Reconhecer o gráfico de uma função polinomial de primeiro grau por meio de seus coeficientes.'],
+          ['D24','Reconhecer a representação algébrica de uma função do primeiro grau, dado o seu gráfico.'],
+          ['D25','Resolver problemas que envolvam os pontos de máximo ou de mínimo no gráfico de uma função polinomial do segundo grau.'],
+          ['D26','Relacionar as raízes de um polinômio com sua decomposição em fatores do primeiro grau.'],
+          ['D27','Identificar a representação algébrica e/ou gráfica de uma função exponencial.'],
+          ['D28','Identificar a representação algébrica e/ou gráfica de uma função logarítmica, reconhecendo-a como inversa da função exponencial.'],
+          ['D29','Resolver problema que envolva função exponencial.'],
+          ['D30','Identificar gráficos de funções trigonométricas (seno, cosseno, tangente) reconhecendo suas propriedades.'],
+          ['D31','Determinar a solução de um sistema linear associando-o a uma matriz.'],
+          ['D32','Resolver o problema de contagem utilizando o princípio multiplicativo ou noções de permutação simples e/ou combinação simples.'],
+          ['D33','Calcular a probabilidade de um evento.']
+        ]},
+        {t:'Tratamento da Informação', d:[
+          ['D34','Resolver problema envolvendo informações apresentadas em tabelas e/ou gráficos.'],
+          ['D35','Associar informações apresentadas em listas e/ou tabelas simples aos gráficos que as representam e vice-versa.']
+        ]}
+      ]
+    },
+    port: {
+      ef5: [
+        {t:'Procedimentos de Leitura', d:[
+          ['D1','Localizar informações explícitas em um texto.'],
+          ['D3','Inferir o sentido de uma palavra ou expressão.'],
+          ['D4','Inferir uma informação implícita em um texto.'],
+          ['D6','Identificar o tema de um texto.'],
+          ['D11','Distinguir um fato da opinião relativa a esse fato.']
+        ]},
+        {t:'Implicações do Suporte, do Gênero e/ou do Enunciador', d:[
+          ['D5','Interpretar texto com auxílio de material gráfico diverso (propagandas, quadrinhos, foto, etc.).'],
+          ['D9','Identificar a finalidade de textos de diferentes gêneros.']
+        ]},
+        {t:'Relação entre Textos', d:[
+          ['D15','Reconhecer diferentes formas de tratar uma informação na comparação de textos que tratam do mesmo tema, em função das condições em que ele foi produzido e daquelas em que será recebido.']
+        ]},
+        {t:'Coerência e Coesão no Processamento do Texto', d:[
+          ['D2','Estabelecer relações entre partes de um texto, identificando repetições ou substituições que contribuem para a continuidade de um texto.'],
+          ['D7','Identificar o conflito gerador do enredo e dos elementos que constroem a narrativa.'],
+          ['D8','Estabelecer relações de causa/consequência entre partes e elementos do texto.'],
+          ['D12','Estabelecer relações lógico-discursivas presentes no texto, marcadas por conjunções, advérbios, etc.']
+        ]},
+        {t:'Relações entre Recursos Expressivos e Efeitos de Sentido', d:[
+          ['D13','Identificar efeitos de ironia ou humor em textos.'],
+          ['D14','Reconhecer o efeito de sentido decorrente do uso da pontuação e de outras notações.']
+        ]},
+        {t:'Variação Linguística', d:[
+          ['D10','Identificar as marcas linguísticas que evidenciam o locutor e o interlocutor de um texto.']
+        ]}
+      ],
+      ef9: [
+        {t:'Procedimentos de Leitura', d:[
+          ['D1','Localizar informações explícitas em um texto.'],
+          ['D3','Inferir o sentido de uma palavra ou expressão.'],
+          ['D4','Inferir uma informação implícita em um texto.'],
+          ['D6','Identificar o tema de um texto.'],
+          ['D14','Distinguir um fato da opinião relativa a esse fato.']
+        ]},
+        {t:'Implicações do Suporte, do Gênero e/ou do Enunciador', d:[
+          ['D5','Interpretar texto com auxílio de material gráfico diverso (propagandas, quadrinhos, foto, etc.).'],
+          ['D12','Identificar a finalidade de textos de diferentes gêneros.']
+        ]},
+        {t:'Relação entre Textos', d:[
+          ['D20','Reconhecer diferentes formas de tratar uma informação na comparação de textos que tratam do mesmo tema, em função das condições em que ele foi produzido e daquelas em que será recebido.'],
+          ['D21','Reconhecer posições distintas entre duas ou mais opiniões relativas ao mesmo fato ou ao mesmo tema.']
+        ]},
+        {t:'Coerência e Coesão no Processamento do Texto', d:[
+          ['D2','Estabelecer relações entre partes de um texto, identificando repetições ou substituições que contribuem para a continuidade de um texto.'],
+          ['D7','Identificar a tese de um texto.'],
+          ['D8','Estabelecer relações entre a tese e os argumentos oferecidos para sustentá-la.'],
+          ['D9','Diferenciar as partes principais das secundárias em um texto.'],
+          ['D10','Identificar o conflito gerador do enredo e os elementos que compõem a narrativa.'],
+          ['D11','Estabelecer relação causa/consequência entre partes e elementos do texto.'],
+          ['D15','Estabelecer relações lógico-discursivas presentes no texto, marcadas por conjunções, advérbios, etc.']
+        ]},
+        {t:'Relações entre Recursos Expressivos e Efeitos de Sentido', d:[
+          ['D16','Identificar efeitos de ironia ou humor em textos.'],
+          ['D17','Reconhecer o efeito de sentido decorrente do uso da pontuação e de outras notações.'],
+          ['D18','Reconhecer o efeito de sentido decorrente da escolha de uma determinada palavra ou expressão.'],
+          ['D19','Reconhecer o efeito de sentido decorrente da exploração de recursos ortográficos e/ou morfossintáticos.']
+        ]},
+        {t:'Variação Linguística', d:[
+          ['D13','Identificar as marcas linguísticas que evidenciam o locutor e o interlocutor de um texto.']
+        ]}
+      ],
+      em3: [
+        {t:'Procedimentos de Leitura', d:[
+          ['D1','Localizar informações explícitas em um texto.'],
+          ['D3','Inferir o sentido de uma palavra ou expressão.'],
+          ['D4','Inferir uma informação implícita em um texto.'],
+          ['D6','Identificar o tema de um texto.'],
+          ['D14','Distinguir um fato da opinião relativa a esse fato.']
+        ]},
+        {t:'Implicações do Suporte, do Gênero e/ou do Enunciador', d:[
+          ['D5','Interpretar um texto com auxílio de material gráfico diverso (propagandas, quadrinhos, foto, etc.).'],
+          ['D12','Identificar a finalidade de textos de diferentes gêneros.']
+        ]},
+        {t:'Relação entre Textos', d:[
+          ['D20','Reconhecer diferentes formas de tratar uma informação na comparação de textos que tratam do mesmo tema, em função das condições em que ele foi produzido e daquelas em que será recebido.'],
+          ['D21','Reconhecer posições distintas entre duas ou mais opiniões relativas ao mesmo fato ou ao mesmo tema.']
+        ]},
+        {t:'Coerência e Coesão no Processamento do Texto', d:[
+          ['D2','Estabelecer relações entre partes de um texto, identificando repetições ou substituições que contribuem para a continuidade de um texto.'],
+          ['D7','Identificar a tese de um texto.'],
+          ['D8','Estabelecer relações entre a tese e os argumentos oferecidos para sustentá-la.'],
+          ['D9','Diferenciar as partes principais das secundárias em um texto.'],
+          ['D10','Identificar o conflito gerador do enredo e os elementos que constroem a narrativa.'],
+          ['D11','Estabelecer relação causa/consequência entre partes e elementos do texto.'],
+          ['D15','Estabelecer relações lógico-discursivas presentes no texto, marcadas por conjunções, advérbios, etc.']
+        ]},
+        {t:'Relações entre Recursos Expressivos e Efeitos de Sentido', d:[
+          ['D16','Identificar efeitos de ironia ou humor em textos variados.'],
+          ['D17','Reconhecer o efeito de sentido decorrente do uso da pontuação e de outras notações.'],
+          ['D18','Reconhecer o efeito de sentido decorrente da escolha de uma determinada palavra ou expressão.'],
+          ['D19','Reconhecer o efeito de sentido decorrente da exploração de recursos ortográficos e/ou morfossintáticos.']
+        ]},
+        {t:'Variação Linguística', d:[
+          ['D13','Identificar as marcas linguísticas que evidenciam o locutor e o interlocutor de um texto.']
+        ]}
+      ]
+    }
+  };
+  var ETAPA_NOME = { ef5:'5º ano (EF)', ef9:'9º ano (EF)', em3:'3º ano (EM)' };
+
+  function normDisc(t){
+    t = (t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    if(t.indexOf('matem')>=0 || t==='mat') return 'mat';
+    if(t.indexOf('portug')>=0 || t.indexOf('lingua p')>=0 || t==='port') return 'port';
+    return null;
+  }
+  function descritoresDe(discTxt, etapa){
+    var d = normDisc(discTxt); if(!d) return null;
+    return (DESCR[d] && DESCR[d][etapa]) ? DESCR[d][etapa] : null;
+  }
+  function etapaAuto(){
+    var g = (config.grau||''), n = (config.nivel||'');
+    if(n.indexOf('Fundamental')>=0 && g.indexOf('5º')===0) return 'ef5';
+    if(n.indexOf('Fundamental')>=0 && g.indexOf('9º')===0) return 'ef9';
+    if(n.indexOf('Médio')>=0 && g.indexOf('3º')===0) return 'em3';
+    return 'ef9';
+  }
+  function etapaAtual(){ var el=$("ia-etapa"); return el && el.value ? el.value : etapaAuto(); }
+  function descritorTexto(discTxt, etapa, cod){
+    var gs = descritoresDe(discTxt, etapa); if(!gs) return '';
+    for(var i=0;i<gs.length;i++){ for(var j=0;j<gs[i].d.length;j++){ if(gs[i].d[j][0]===cod) return gs[i].d[j][1]; } }
+    return '';
+  }
+  function optionsDescritoresHTML(discTxt, etapa, valorAtual){
+    var gs = descritoresDe(discTxt, etapa);
+    var html = '<option value="">— sem descritor —</option>';
+    if(!gs){ return html + '<option value="" disabled>(disponível só p/ Matemática e Língua Portuguesa)</option>'; }
+    gs.forEach(function(g){
+      html += '<optgroup label="'+esc(g.t)+'">';
+      g.d.forEach(function(par){
+        html += '<option value="'+par[0]+'"'+(valorAtual===par[0]?' selected':'')+'>'+esc(par[0]+' – '+par[1])+'</option>';
+      });
+      html += '</optgroup>';
+    });
+    return html;
+  }
+
   /* ---------------- Ligações do formulário ---------------- */
   function bindCampo(id, chave){
     var el = $(id);
@@ -599,7 +895,14 @@
     config.grau = "";
     renderFolhas();
   });
-  $("f-grau").addEventListener("change", function(){ config.grau = this.value; renderFolhas(); });
+  $("f-grau").addEventListener("change", function(){
+    config.grau = this.value; renderFolhas();
+    var g = this.value, n = config.nivel||"";
+    var et = (n.indexOf('Fundamental')>=0 && g.indexOf('5º')===0) ? 'ef5'
+           : (n.indexOf('Fundamental')>=0 && g.indexOf('9º')===0) ? 'ef9'
+           : (n.indexOf('Médio')>=0 && g.indexOf('3º')===0) ? 'em3' : null;
+    if(et && $("ia-etapa")){ $("ia-etapa").value = et; repopularDescritorIA(); renderBuilder(); }
+  });
 
   $("f-logo").addEventListener("change", function(){
     var f = this.files && this.files[0];
@@ -693,6 +996,7 @@
         '</div>';
       }
 
+      html += '<div class="q-descr"><label>Descritor SAEB</label><select data-act="descr">'+optionsDescritoresHTML(q.descritorDisc||config.disc, q.descritorEtapa||etapaAtual(), q.descritorCod||"")+'</select></div>';
       html += '<div class="q-rodape"><button class="btn btn-mini" data-act="banco" title="Guardar esta questão no banco para reutilizar depois">★ Salvar no banco</button></div>';
       card.innerHTML = html;
       card.dataset.qid = q.id;
@@ -731,6 +1035,20 @@
         var qid = parseInt(el.closest(".q-card").dataset.qid,10);
         var q = acharQ(qid); if(!q) return;
         q.correta = parseInt(el.dataset.ai,10);
+        renderFolhas();
+      });
+    });
+    // descritor SAEB
+    wrap.querySelectorAll('[data-act="descr"]').forEach(function(el){
+      el.addEventListener("change", function(){
+        var qid = parseInt(el.closest(".q-card").dataset.qid,10);
+        var q = acharQ(qid); if(!q) return;
+        var cod = el.value;
+        q.descritorCod = cod;
+        q.descritorTxt = cod ? descritorTexto(config.disc, etapaAtual(), cod) : "";
+        q.descritorEtapa = cod ? etapaAtual() : "";
+        q.descritorDisc = cod ? (config.disc||"") : "";
+        if(q.bancoId || (autoBanco && (q.enun||"").trim())) sincronizarBanco(q);
         renderFolhas();
       });
     });
@@ -876,11 +1194,12 @@
 
     var lista = "";
     questoes.forEach(function(q, i){
+      var dsc = q.descritorCod ? '<div class="gab-desc">SAEB '+esc(q.descritorCod)+'</div>' : '';
       if(q.tipo==="obj"){
         var r = (q.correta!=null) ? (letra(q.correta)+")").toUpperCase() : "—";
-        lista += '<div class="gab-item"><div class="qn">Questão '+(i+1)+'</div><div class="resp">'+r+'</div></div>';
+        lista += '<div class="gab-item"><div class="qn">Questão '+(i+1)+'</div><div class="resp">'+r+'</div>'+dsc+'</div>';
       } else {
-        lista += '<div class="gab-item"><div class="qn">Questão '+(i+1)+'</div><div class="disc">discursiva</div></div>';
+        lista += '<div class="gab-item"><div class="qn">Questão '+(i+1)+'</div><div class="disc">discursiva</div>'+dsc+'</div>';
       }
     });
     if(!lista) lista = '<p style="color:#999;font-style:italic">Sem questões.</p>';
@@ -1079,6 +1398,7 @@
         b.alts = q.tipo==="obj" ? (q.alts||[]).slice() : [];
         b.correta = q.tipo==="obj" ? q.correta : null;
         b.valor = q.valor||""; b.linhas = q.tipo==="disc" ? q.linhas : 6;
+        b.descritorCod = q.descritorCod||""; b.descritorTxt = q.descritorTxt||""; b.descritorEtapa = q.descritorEtapa||""; b.descritorDisc = q.descritorDisc||"";
         if(disc) b.disciplina = disc;
         if(assunto) b.assunto = assunto;
         persistirBanco(); atualizarContadorBanco();
@@ -1090,6 +1410,7 @@
       alts: q.tipo==="obj" ? (q.alts||[]).slice() : [],
       correta: q.tipo==="obj" ? q.correta : null,
       valor: q.valor||"", linhas: q.tipo==="disc" ? q.linhas : 6,
+      descritorCod: q.descritorCod||"", descritorTxt: q.descritorTxt||"", descritorEtapa: q.descritorEtapa||"", descritorDisc: q.descritorDisc||"",
       disciplina: disc||"", assunto: assunto||"", nivel: config.nivel||"", ts: Date.now()
     };
     banco.push(novo); q.bancoId = novo.id;
@@ -1107,7 +1428,9 @@
       id: idSeq++, tipo: b.tipo, enun: b.enun,
       alts: b.tipo==="obj" ? (b.alts||[]).slice() : ["","",""],
       correta: b.tipo==="obj" ? b.correta : null,
-      valor: b.valor||"", linhas: b.tipo==="disc" ? (b.linhas||6) : 6
+      valor: b.valor||"", linhas: b.tipo==="disc" ? (b.linhas||6) : 6,
+      descritorCod: b.descritorCod||"", descritorTxt: b.descritorTxt||"", descritorEtapa: b.descritorEtapa||"", descritorDisc: b.descritorDisc||"",
+      assunto: b.assunto||""
     });
     renderBuilder(); renderFolhas();
   }
@@ -1148,11 +1471,13 @@
     var div = document.createElement("div"); div.className = "banco-item"; div.dataset.bid = b.id;
     var badge = b.tipo==="obj" ? '<span class="badge obj">Objetiva</span>' : '<span class="badge disc">Discursiva</span>';
     var enun = b.enun ? esc(b.enun) : '<i style="color:var(--giz-fraco)">[sem enunciado]</i>';
+    var descr = b.descritorCod ? '<div class="bi-descr">SAEB '+esc(b.descritorCod)+(b.descritorEtapa&&ETAPA_NOME[b.descritorEtapa]?' · '+esc(ETAPA_NOME[b.descritorEtapa]):'')+'</div>' : '';
     div.innerHTML =
       '<div class="bi-topo">'+badge+
         '<input class="bi-disc-edit" data-act="disc" list="lista-disc" placeholder="disciplina" value="'+esc(b.disciplina||"")+'">'+
       '</div>'+
       '<input class="bi-assunto" data-act="assunto" placeholder="assunto / tema (opcional)" value="'+esc(b.assunto||"")+'">'+
+      descr +
       '<div class="bi-enun">'+enun+'</div>'+
       '<div class="bi-acoes">'+
         '<button class="btn btn-mini btn-ouro" data-act="inserir">➕ Inserir na prova</button>'+
@@ -1342,7 +1667,10 @@
     var valor = $("ia-valor").value;
     var endpoint = ($("ia-endpoint").value||"").trim();
     var model = ($("ia-model").value||"").trim() || "claude-sonnet-4-6";
-    if(!assunto){ msgIA("Informe o assunto da questão.", true); return; }
+    var descrCod = ($("ia-descritor").value||"");
+    var descrEtapa = etapaAtual();
+    var descrTxt = descrCod ? descritorTexto(disc, descrEtapa, descrCod) : "";
+    if(!assunto && !descrCod){ msgIA("Informe o assunto da questão (ou escolha um descritor).", true); return; }
     if(!endpoint){ msgIA("Configure o endereço da IA em \u201c\u2699\uFE0F Configurar IA\u201d.", true); return; }
 
     var nivelGrau = [config.nivel, config.grau].filter(Boolean).join(" - ");
@@ -1357,7 +1685,8 @@
       + "Responda SOMENTE com um objeto JSON válido, sem markdown e sem qualquer texto fora do JSON.";
     var pedido = "Crie 1 questão " + tipoTxt
       + (disc ? " da disciplina de " + disc : "")
-      + " sobre: \"" + assunto + "\"."
+      + (assunto ? " sobre: \"" + assunto + "\"." : ".")
+      + (descrCod ? " A questão deve avaliar o seguinte descritor do SAEB (" + descrCod + "): " + descrTxt : "")
       + (nivelGrau ? " Público-alvo: " + nivelGrau + "." : "")
       + ((tipo==="obj") ? (" Gere exatamente " + nAlts + " alternativas.") : "")
       + " Formato exato da resposta (JSON): " + esquema;
@@ -1381,9 +1710,9 @@
         var alts = Array.isArray(obj.alternativas) ? obj.alternativas.map(String) : [];
         if(alts.length < 2) throw new Error("sem alternativas");
         var correta = (typeof obj.correta==="number" && obj.correta>=0 && obj.correta<alts.length) ? obj.correta : null;
-        nova = { id: idSeq++, tipo:"obj", enun:String(obj.enunciado), alts:alts, correta:correta, valor:valor, ia:true, assunto:assunto };
+        nova = { id: idSeq++, tipo:"obj", enun:String(obj.enunciado), alts:alts, correta:correta, valor:valor, ia:true, assunto:assunto, descritorCod:descrCod, descritorTxt:descrTxt, descritorEtapa:descrCod?descrEtapa:"", descritorDisc:descrCod?disc:"" };
       } else {
-        nova = { id: idSeq++, tipo:"disc", enun:String(obj.enunciado), linhas:6, valor:valor, ia:true, assunto:assunto };
+        nova = { id: idSeq++, tipo:"disc", enun:String(obj.enunciado), linhas:6, valor:valor, ia:true, assunto:assunto, descritorCod:descrCod, descritorTxt:descrTxt, descritorEtapa:descrCod?descrEtapa:"", descritorDisc:descrCod?disc:"" };
       }
       questoes.push(nova);
       sincronizarBanco(nova, disc, assunto); // toda questão gerada vai para o banco
@@ -1402,11 +1731,22 @@
   $("ia-tipo").addEventListener("change", function(){
     $("ia-alts-wrap").style.display = (this.value==="obj") ? "" : "none";
   });
+  function repopularDescritorIA(){
+    var sel = $("ia-descritor");
+    sel.innerHTML = optionsDescritoresHTML($("ia-disc").value || config.disc, etapaAtual(), sel.value||"");
+    var temMatriz = !!descritoresDe($("ia-disc").value || config.disc, etapaAtual());
+    var dica = $("ia-descr-dica");
+    if(dica){ dica.style.color = temMatriz ? "" : "var(--alerta)"; }
+  }
+  $("ia-etapa").addEventListener("change", function(){ repopularDescritorIA(); renderBuilder(); });
+  $("ia-descritor").addEventListener("change", salvarCfgIA);
+  $("ia-disc").addEventListener("input", function(){ repopularDescritorIA(); renderBuilder(); });
   $("ia-endpoint").addEventListener("change", salvarCfgIA);
   $("ia-model").addEventListener("change", salvarCfgIA);
   $("chk-autobanco").addEventListener("change", function(){ autoBanco = this.checked; salvarCfgIA(); });
   $("f-disc").addEventListener("input", function(){
     if(!($("ia-disc").value||"").trim()){ $("ia-disc").value = this.value; }
+    repopularDescritorIA(); renderBuilder();
   });
 
   /* ---------------- Início ---------------- */
@@ -1416,6 +1756,8 @@
   atualizarContadorBanco();
   carregarCfgIA();
   $("ia-alts-wrap").style.display = ($("ia-tipo").value==="obj") ? "" : "none";
+  $("ia-etapa").value = etapaAuto();
+  repopularDescritorIA();
   if(!lsOK){
     var av = $("banco-aviso");
     if(av){ av.classList.remove("hidden"); av.textContent = "Neste ambiente o navegador não guarda o banco entre sessões. Use \u201cExportar banco\u201d para salvar em arquivo e \u201cImportar banco\u201d para recarregar depois."; }
