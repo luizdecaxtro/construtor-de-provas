@@ -150,11 +150,10 @@
   .ia-msg{display:none;margin-top:10px;font-size:.82rem;line-height:1.45;padding:9px 11px;border-radius:8px;background:rgba(212,175,55,.08);border:1px solid var(--painel-borda);color:var(--giz-suave);}
   .ia-msg.show{display:block;}
   .ia-msg.erro{background:rgba(224,122,95,.12);border-color:var(--erro);color:#f0b7a8;}
-  .ia-config{margin-top:12px;border-top:1px solid var(--painel-borda);padding-top:10px;}
-  .ia-config summary{cursor:pointer;font-size:.8rem;color:var(--giz-suave);user-select:none;list-style:none;}
-  .ia-config summary::-webkit-details-marker{display:none;}
-  .ia-config summary:hover{color:var(--giz);}
-  .ia-config[open] summary{margin-bottom:10px;color:var(--ouro);}
+  .ia-config-btn{margin-top:12px;background:transparent;border:none;color:var(--giz-fraco);font-family:'Inter',sans-serif;font-size:.8rem;cursor:pointer;padding:6px 0;text-align:left;}
+  .ia-config-btn:hover{color:var(--giz-suave);}
+  .ia-config-painel{margin-top:8px;border-top:1px solid var(--painel-borda);padding-top:12px;}
+  .ia-config-painel[hidden]{display:none;}
   .q-ia{font-size:.6rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;background:rgba(212,175,55,.2);color:var(--ouro);border:1px solid var(--ouro-escuro);border-radius:20px;padding:2px 7px;margin-left:2px;}
   .q-descr{margin-top:10px;display:flex;flex-direction:column;gap:4px;}
   .q-descr label{font-size:.66rem;text-transform:uppercase;letter-spacing:.04em;color:var(--giz-suave);}
@@ -504,18 +503,18 @@
       </div>
       <button class="btn btn-ouro" id="btnGerarIA" style="width:100%">🤖 Gerar questão</button>
       <div id="ia-msg" class="ia-msg"></div>
-      <details class="ia-config">
-        <summary>⚙️ Configurar IA (endereço do Worker e modelo)</summary>
+      <button type="button" class="ia-config-btn" id="btnConfigIA">⚙️ Configurar IA (acesso do administrador)</button>
+      <div id="ia-config-painel" class="ia-config-painel" hidden>
         <div class="campo">
           <label for="ia-endpoint">Endereço da IA (Cloudflare Worker)</label>
-          <input type="text" id="ia-endpoint" placeholder="https://proxy-educacao.SEU-USUARIO.workers.dev">
+          <input type="text" id="ia-endpoint" placeholder="https://...workers.dev">
         </div>
         <div class="campo">
           <label for="ia-model">Modelo</label>
           <input type="text" id="ia-model" placeholder="claude-sonnet-4-6">
         </div>
-        <p class="dica">No site publicado, use o endereço do seu Worker (que guarda a chave e encaminha para a API da Anthropic). Apontar direto para api.anthropic.com só funciona dentro do preview do Claude.</p>
-      </details>
+        <p class="dica">Área do administrador. Estas configurações já vêm prontas — altere apenas se souber o que está fazendo.</p>
+      </div>
     </div>
 
   </aside>
@@ -1625,7 +1624,7 @@
   function carregarCfgIA(){
     var cfg = {};
     if(lsOK){ try{ var r = localStorage.getItem(IA_CFG_KEY); if(r) cfg = JSON.parse(r)||{}; }catch(e){} }
-    $("ia-endpoint").value = cfg.endpoint || "https://api.anthropic.com/v1/messages";
+    $("ia-endpoint").value = cfg.endpoint || "https://proxy-educacao.intelectus247.workers.dev";
     $("ia-model").value = cfg.model || "claude-sonnet-4-6";
     autoBanco = (cfg.autoBanco !== false);
     $("chk-autobanco").checked = autoBanco;
@@ -1730,6 +1729,28 @@
   $("btnGerarIA").addEventListener("click", gerarQuestaoIA);
   $("ia-tipo").addEventListener("change", function(){
     $("ia-alts-wrap").style.display = (this.value==="obj") ? "" : "none";
+  });
+
+  /* ---- acesso do administrador ao painel de configuração ---- */
+  var adminDesbloqueado = false;
+  var ADMIN_HASH = "d035483bfe0d2f1c597c29f34e24cf6da22c5fb7cdc59db586ccb535de552f76";
+  function sha256hex(s){
+    return crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)).then(function(buf){
+      return Array.prototype.map.call(new Uint8Array(buf), function(b){ return ('0'+b.toString(16)).slice(-2); }).join('');
+    });
+  }
+  $("btnConfigIA").addEventListener("click", function(){
+    var painel = $("ia-config-painel");
+    if(adminDesbloqueado){ painel.hidden = !painel.hidden; return; }
+    var senha = window.prompt("Senha do administrador:");
+    if(senha === null) return;
+    if(!(window.crypto && crypto.subtle)){
+      alert("A configuração só pode ser aberta pelo site publicado (HTTPS)."); return;
+    }
+    sha256hex(senha).then(function(h){
+      if(h === ADMIN_HASH){ adminDesbloqueado = true; painel.hidden = false; }
+      else { alert("Senha incorreta."); }
+    }).catch(function(){ alert("Não foi possível verificar a senha neste ambiente."); });
   });
   function repopularDescritorIA(){
     var sel = $("ia-descritor");
